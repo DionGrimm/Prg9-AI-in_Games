@@ -223,12 +223,23 @@ class GameAI {
     static moveKnight(king, knights, gameState) {
         let t0 = performance.now();
         console.log(king);
-        let i = Math.floor(Math.random() * Math.floor(knights.length));
-        let legalMoves = knights[i].getMoves();
-        console.log(legalMoves);
-        let j = Math.floor(Math.random() * Math.floor(legalMoves.length));
-        knights[i].setPosition(legalMoves[j]);
-        gameState.knightPositions[i] = legalMoves[j];
+        const moves = [];
+        knights.forEach((knight, i) => {
+            const state = gameState.copy();
+            const legalMoves = knights[i].getMoves();
+            legalMoves.forEach((move, j) => {
+                const nodeIndex = [i, j];
+                gameState.knightPositions[i] = legalMoves[j];
+                const score = state.getScore();
+                if (score[0] === 0) {
+                    const kingLegalMoves = king.getMoves();
+                    kingLegalMoves.forEach((move, i) => {
+                        const score = state.getScore();
+                    });
+                }
+                moves.push([nodeIndex, score]);
+            });
+        });
         let t1 = performance.now();
         console.log("AI move took " + (t1 - t0) + " milliseconds.");
     }
