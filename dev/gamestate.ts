@@ -1,6 +1,7 @@
 class GameState {
     public kingPos: [number, number];               // position of the king in the game in board coordinates
     public knightPositions: [number, number][];     // position of the knights in the game in board coordinates
+    public previousKingPosition: [number, number];
 
     constructor(kingPos: [number, number], knightPositions: [number, number][]) {
         this.kingPos = kingPos;
@@ -22,12 +23,18 @@ class GameState {
             return[100, true];
         } 
 
-        
-
         // not over yet, return an evaluation of the gamestate
         // higher number is better for king, lower better for the knights
 
         // Hint: use the position of the king stored in this.kingPos
+        // for (let z of this.knightPositions) {
+        //     if (Board.collidingPosition(this.knightPositions[0], this.kingPos)) {
+        //         console.log('collising position')
+        //         return [50, true];
+        //     }
+        // }
+
+
         return [0, false]
     }
 

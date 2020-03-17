@@ -1,7 +1,7 @@
 /// <reference path="tile.ts" />
 
 class Board {
-    private readonly BOARD_SIZE = 8;    // size of the board (smaller is easier for the AI)
+    private readonly BOARD_SIZE = 10;    // size of the board (smaller is easier for the AI)
     private tileSize = 100;             // size of a board tile 
     
     private static instance:Board;
@@ -54,5 +54,11 @@ class Board {
     // check if two positions are the same
     public static samePosition(a:[number, number], b:[number, number]): boolean {
         return (a[0] == b[0]) && (a[1] == b[1]);
+    }
+
+    // check if two positions are one king move apart
+    public static collidingPosition(a:[number, number], b:[number, number]): boolean {
+        console.log(a[0] - b[0]);
+        return ((Math.abs(a[0] - b[0]) === 1) && (Math.abs(a[1] - b[1]) <= 1) || (Math.abs(a[1] - b[1]) === 1) && (Math.abs(a[0] - b[0]) <= 1));
     }
 }

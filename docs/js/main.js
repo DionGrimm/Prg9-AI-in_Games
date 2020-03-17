@@ -70,7 +70,7 @@ class Tile extends ChessPiece {
 window.customElements.define("tile-component", Tile);
 class Board {
     constructor() {
-        this.BOARD_SIZE = 8;
+        this.BOARD_SIZE = 10;
         this.tileSize = 100;
         let smallestSide = Math.min(window.innerWidth, window.innerHeight);
         this.tileSize = Math.floor(smallestSide / this.BOARD_SIZE);
@@ -106,6 +106,10 @@ class Board {
     static samePosition(a, b) {
         return (a[0] == b[0]) && (a[1] == b[1]);
     }
+    static collidingPosition(a, b) {
+        console.log(a[0] - b[0]);
+        return ((Math.abs(a[0] - b[0]) === 1) && (Math.abs(a[1] - b[1]) <= 1) || (Math.abs(a[1] - b[1]) === 1) && (Math.abs(a[0] - b[0]) <= 1));
+    }
 }
 class GameState {
     constructor(kingPos, knightPositions) {
@@ -132,7 +136,7 @@ class Game {
     constructor() {
         this.knights = [];
         this.gameOver = false;
-        this.KNIGHTS = 3;
+        this.KNIGHTS = 5;
         this.playerTurn = true;
         Board.getInstance();
         this.king = new King();
@@ -223,23 +227,54 @@ class GameAI {
     static moveKnight(king, knights, gameState) {
         let t0 = performance.now();
         console.log(king);
-        const moves = [];
-        knights.forEach((knight, i) => {
-            const state = gameState.copy();
-            const legalMoves = knights[i].getMoves();
-            legalMoves.forEach((move, j) => {
-                const nodeIndex = [i, j];
-                gameState.knightPositions[i] = legalMoves[j];
-                const score = state.getScore();
-                if (score[0] === 0) {
-                    const kingLegalMoves = king.getMoves();
-                    kingLegalMoves.forEach((move, i) => {
-                        const score = state.getScore();
+        function minimax(gameState, depth, maximizingPlayer) {
+            const score = gameState.getScore();
+            if (depth === 0 || score[1])
+                return score[0];
+            if (maximizingPlayer) {
+                let maxEval = -Infinity;
+                const legalMoves = king.getMoves(gameState.kingPos);
+                legalMoves.forEach((move) => {
+                    const newState = gameState.copy();
+                    newState.kingPos = move;
+                    const score = minimax(newState, depth - 1, false);
+                    maxEval = Math.max(maxEval, score);
+                });
+                return maxEval;
+            }
+            else {
+                let minEval = Infinity;
+                knights.forEach((knight, i) => {
+                    const legalMoves = knight.getMoves(gameState.knightPositions[i]);
+                    legalMoves.forEach((move) => {
+                        const newState = gameState.copy();
+                        newState.knightPositions[i] = move;
+                        const score = minimax(newState, depth - 1, true);
+                        minEval = Math.min(minEval, score);
                     });
+                });
+                return minEval;
+            }
+        }
+        const searchDepth = 4;
+        let minEval = Infinity;
+        let bestMove = [0, 0];
+        let knightIndex = 0;
+        knights.forEach((knight, i) => {
+            const moves = knight.getMoves(gameState.knightPositions[i]);
+            moves.forEach((move) => {
+                const newGameState = gameState.copy();
+                newGameState.knightPositions[i] = move;
+                const currentEval = minimax(newGameState, searchDepth - 1, true);
+                if (currentEval < minEval) {
+                    minEval = currentEval;
+                    bestMove = move;
+                    knightIndex = i;
                 }
-                moves.push([nodeIndex, score]);
             });
         });
+        knights[knightIndex].setPosition(bestMove);
+        gameState.knightPositions[knightIndex] = bestMove;
         let t1 = performance.now();
         console.log("AI move took " + (t1 - t0) + " milliseconds.");
     }
