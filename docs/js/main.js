@@ -236,7 +236,7 @@ class GameAI {
     static moveKnight(king, knights, gameState) {
         let t0 = performance.now();
         console.log(king);
-        function minimax(gameState, depth, maximizingPlayer) {
+        function minimax(gameState, depth, alpha, beta, maximizingPlayer) {
             const score = gameState.getScore();
             if (depth === 0 || score[1])
                 return score[0];
@@ -244,11 +244,15 @@ class GameAI {
                 let maxEval = -Infinity;
                 const legalMoves = king.getMoves(gameState.kingPos);
                 const newState = gameState.copy();
-                legalMoves.forEach((move) => {
+                for (const move of legalMoves) {
                     newState.kingPos = move;
-                    const score = minimax(newState, depth - 1, false);
-                    maxEval = Math.max(maxEval, score);
-                });
+                    const currentEval = minimax(newState, depth - 1, alpha, beta, false);
+                    maxEval = Math.max(maxEval, currentEval);
+                    alpha = Math.max(alpha, currentEval);
+                    if (beta <= alpha)
+                        break;
+                }
+                ;
                 return maxEval;
             }
             else {
@@ -256,16 +260,20 @@ class GameAI {
                 knights.forEach((knight, i) => {
                     const newState = gameState.copy();
                     const legalMoves = knight.getMoves(gameState.knightPositions[i]);
-                    legalMoves.forEach((move) => {
+                    for (const move of legalMoves) {
                         newState.knightPositions[i] = move;
-                        const score = minimax(newState, depth - 1, true);
-                        minEval = Math.min(minEval, score);
-                    });
+                        const currentEval = minimax(newState, depth - 1, alpha, beta, true);
+                        minEval = Math.min(minEval, currentEval);
+                        beta = Math.min(beta, currentEval);
+                        if (beta <= alpha)
+                            break;
+                    }
+                    ;
                 });
                 return minEval;
             }
         }
-        const searchDepth = 1;
+        const searchDepth = 4;
         let minEval = Infinity;
         let bestMove = [0, 0];
         let knightIndex = 0;
@@ -274,7 +282,7 @@ class GameAI {
             const newGameState = gameState.copy();
             moves.forEach((move) => {
                 newGameState.knightPositions[i] = move;
-                const currentEval = minimax(newGameState, searchDepth - 1, true);
+                const currentEval = minimax(newGameState, searchDepth - 1, -Infinity, Infinity, true);
                 if (currentEval < minEval) {
                     minEval = currentEval;
                     bestMove = move;
