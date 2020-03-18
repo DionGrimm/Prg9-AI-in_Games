@@ -27,15 +27,17 @@ class GameState {
         // higher number is better for king, lower better for the knights
 
         // Hint: use the position of the king stored in this.kingPos
-        // for (let z of this.knightPositions) {
-        //     if (Board.collidingPosition(this.knightPositions[0], this.kingPos)) {
-        //         console.log('collising position')
-        //         return [50, true];
-        //     }
-        // }
 
+        let distance = 50;
+        this.knightPositions.forEach((knightPos) => {
+            const dx = Math.abs(this.kingPos[0] - knightPos[0]);
+            const dy = Math.abs(this.kingPos[1] - knightPos[1]);
+            const delta = dx + dy;
 
-        return [0, false]
+            if (delta < distance && delta > 1) distance = delta;
+        });
+        const score = -50 / distance;
+        return [score, false]
     }
 
     // create a copy of the gamestate (needed by AI to look into the future)
